@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio Comms Guide — DCS World</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
 
@@ -23,6 +24,12 @@
       <button class="lang-btn active" data-l="ru" onclick="setLang('ru')">RU</button>
       <button class="lang-btn" data-l="en" onclick="setLang('en')">EN</button>
     </div>
+
+    <button class="sim-open-btn lang-btn" onclick="openSimModal()">
+      <span data-lang="ru">Симуляция</span>
+      <span data-lang="en">Simulation</span>
+    </button>
+
     <div class="callsign-display" onclick="openSettings()">
       <div>
         <div class="cs-label">Позывной</div>
@@ -63,6 +70,148 @@
   </div>
 </div>
 
+<!-- SIMULATION MODAL -->
+<div class="modal-overlay" id="simModal">
+  <div class="sim-modal">
+    <div class="sim-modal-top">
+      <div class="sim-modal-title">
+        <span class="sim-modal-icon">🎙️</span>
+        <span data-lang="ru">Планировщик симуляции</span>
+        <span data-lang="en">Simulation Builder</span>
+      </div>
+      <button class="sim-close-btn" onclick="closeSimModal()">✕</button>
+    </div>
+
+    <div class="sim-stepper">
+      <div class="sim-step-indicator active">1</div>
+      <div class="sim-step-indicator">2</div>
+      <div class="sim-step-indicator">3</div>
+      <div class="sim-step-indicator">4</div>
+    </div>
+
+    <div class="sim-modal-body">
+      <!-- STEP 1 -->
+      <div id="simStep1" class="sim-wizard-step">
+        <div class="sim-grid-2">
+          <div class="sim-field">
+            <label data-lang="ru">Позывной</label>
+            <label data-lang="en">Callsign</label>
+            <input id="simCallsign" type="text" placeholder="King 7">
+          </div>
+          <div class="sim-field">
+            <label data-lang="ru">Тип борта</label>
+            <label data-lang="en">Aircraft Type</label>
+            <input id="simType" type="text" placeholder="C-130">
+          </div>
+        </div>
+
+        <div class="sim-field" style="margin-top:12px;">
+          <label data-lang="ru">Тип операции</label>
+          <label data-lang="en">Operation type</label>
+          <select id="simOpType" onchange="updateRouteLabels(this.value); renderSimWaypoints(); renderSimPreview();">
+            <option value="airfield">Самолёт (аэродром → аэродром) / Fixed-wing (airfield → airfield)</option>
+            <option value="helicopter">Вертолёт / Helicopter</option>
+            <option value="carrier-departure">Авианосец → аэродром / Carrier → airfield</option>
+            <option value="carrier-recovery">Аэродром → авианосец / Airfield → carrier</option>
+            <option value="carrier-full">Авианосец → авианосец / Carrier → carrier</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div id="simStep2" class="sim-wizard-step" style="display:none;">
+        <div class="sim-grid-2">
+          <div class="sim-field">
+            <label id="simOriginLabel">Аэродром вылета</label>
+            <input id="simOrigin" type="text" placeholder="Сенаки">
+          </div>
+          <div class="sim-field">
+            <label id="simDestLabel">Аэродром посадки</label>
+            <input id="simDest" type="text" placeholder="Кутаиси">
+          </div>
+        </div>
+
+        <div class="sim-waypoints-head">
+          <div>
+            <div class="sim-waypoints-title" data-lang="ru">Точки маршрута</div>
+            <div class="sim-waypoints-title" data-lang="en">Route waypoints</div>
+          </div>
+          <button class="sim-mini-btn" onclick="addWaypoint()">+ <span data-lang="ru">Добавить</span><span data-lang="en">Add</span></button>
+        </div>
+
+        <div id="simWaypointsList" class="sim-waypoints-list"></div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div id="simStep3" class="sim-wizard-step" style="display:none;">
+        <div class="sim-hint" data-lang="ru">Опционально: выбери экстренные события, которые могут случиться в полёте.</div>
+        <div class="sim-hint" data-lang="en">Optional: pick emergency events that may occur during flight.</div>
+
+        <div class="sim-checklist">
+          <div class="sim-check">
+            <input type="checkbox" id="em_goaround" value="go-around" data-label-ru="Уход на второй круг" data-label-en="Go-around">
+            <label for="em_goaround"><span data-lang="ru">Уход на второй круг</span><span data-lang="en">Go-around</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_emland" value="emergency-land" data-label-ru="Аварийная посадка" data-label-en="Emergency landing">
+            <label for="em_emland"><span data-lang="ru">Аварийная посадка</span><span data-lang="en">Emergency landing</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_taxicancel" value="taxi-cancel" data-label-ru="Отмена руления" data-label-en="Taxi cancel">
+            <label for="em_taxicancel"><span data-lang="ru">Отмена руления</span><span data-lang="en">Taxi cancel</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_instfail" value="instrument-fail" data-label-ru="Отказ приборов" data-label-en="Instrument failure">
+            <label for="em_instfail"><span data-lang="ru">Отказ приборов</span><span data-lang="en">Instrument failure</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_fire" value="fire" data-label-ru="Пожар" data-label-en="Fire">
+            <label for="em_fire"><span data-lang="ru">Пожар</span><span data-lang="en">Fire</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_enginefail" value="engine-fail" data-label-ru="Отказ двигателя" data-label-en="Engine failure">
+            <label for="em_enginefail"><span data-lang="ru">Отказ двигателя</span><span data-lang="en">Engine failure</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_decomp" value="decompression" data-label-ru="Разгерметизация" data-label-en="Decompression">
+            <label for="em_decomp"><span data-lang="ru">Разгерметизация</span><span data-lang="en">Decompression</span></label>
+          </div>
+
+          <div class="sim-check">
+            <input type="checkbox" id="em_lowfuel" value="low-fuel" data-label-ru="Низкий остаток топлива" data-label-en="Low fuel">
+            <label for="em_lowfuel"><span data-lang="ru">Низкий остаток топлива</span><span data-lang="en">Low fuel</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div id="simStep4" class="sim-wizard-step" style="display:none;">
+        <div class="sim-hint" data-lang="ru">Проверь план перед генерацией.</div>
+        <div class="sim-hint" data-lang="en">Review before generating.</div>
+        <div id="simPreview" class="sim-preview"></div>
+      </div>
+    </div>
+
+    <div class="sim-modal-footer">
+      <button class="btn-cancel" onclick="closeSimModal()">
+        <span data-lang="ru">Отмена</span><span data-lang="en">Cancel</span>
+      </button>
+
+      <div class="sim-footer-right">
+        <button class="sim-nav" id="simPrevBtn" onclick="prevSimStep()">← <span data-lang="ru">Назад</span><span data-lang="en">Previous</span></button>
+        <button class="sim-nav primary" id="simNextBtn" onclick="nextSimStep()"><span data-lang="ru">Далее</span><span data-lang="en">Next</span> →</button>
+        <button class="sim-nav primary" id="simGenerateBtn" onclick="generateSimulation()">⚡ <span data-lang="ru">Сгенерировать</span><span data-lang="en">Generate</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- LAYOUT -->
 <div class="layout">
   <!-- SIDEBAR (generated by JS) -->
@@ -74,10 +223,14 @@
 
 <!-- CREDITS BADGE -->
 <div class="credits-badge">
-  Руководство составлено: _d&euro;mpay (Псих/Илья) &bull; Beta-Version 2.0.4 &bull; 26.08.2024<br>
   Сервер: Storks<br>
-  Сайт разработан: @danilka_pikaso (AsQ)
+  Руководство составлено: _d&euro;mpay (Псих/Илья)<br>
+  Сайт разработан: @danilka_pikaso (AsQ)<br><br>
+  <i><b>Данный сайт находится в альфа-тесте</b></i>
 </div>
+
+<!-- SIMULATION PAGE -->
+<div id="simPage" class="sim-page"></div>
 
 <!-- DATA REGISTRY -->
 <script src="data/registry.js"></script>
@@ -126,6 +279,7 @@
 
 <!-- APP LOGIC (must be last) -->
 <script src="js/app.js"></script>
+<script src="js/simulation.js"></script>
 
 </body>
 </html>

@@ -788,3 +788,678 @@ body.lang-en [data-lang="ru"] { display: none; }
 .credits-badge:hover {
   opacity: 1;
 }
+
+
+/* === Simulation UI === */
+.sim-open-btn{
+  height:38px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:transform .08s ease, border-color .15s ease;
+}
+.sim-open-btn:hover{ border-color: rgba(255,255,255,.18); }
+.sim-open-btn:active{ transform: translateY(1px); }
+
+.sim-modal{
+  width:min(980px, 96vw);
+  max-height: min(86vh, 860px);
+  overflow:hidden;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  display:flex;
+  flex-direction:column;
+}
+
+.sim-modal-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+}
+.sim-modal-title{ display:flex; align-items:center; gap:10px; font-weight:700; }
+.sim-modal-icon{ font-size:18px; }
+
+.sim-close-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text);
+  cursor:pointer;
+}
+
+.sim-stepper{
+  display:flex;
+  gap:10px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+}
+.sim-step-indicator{
+  width:30px;height:30px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  background:var(--bg-card);
+  font-weight:700;
+}
+.sim-step-indicator.active{ border-color: var(--accent); color: var(--text); }
+.sim-step-indicator.done{ opacity:.7; }
+
+.sim-modal-body{
+  padding:14px 16px;
+  overflow:auto;
+}
+.sim-grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+@media (max-width:720px){ .sim-grid-2{ grid-template-columns:1fr; } }
+
+.sim-field label{
+  display:block;
+  font-size:12px;
+  color:var(--text-secondary);
+  margin-bottom:6px;
+}
+.sim-field input, .sim-field select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text);
+  outline:none;
+}
+.sim-field input:focus, .sim-field select:focus{
+  border-color: rgba(255,255,255,.22);
+}
+
+.sim-waypoints-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:14px;
+  margin-bottom:10px;
+}
+.sim-waypoints-title{ font-weight:700; }
+.sim-mini-btn{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text);
+  cursor:pointer;
+}
+.sim-waypoints-list{ display:flex; flex-direction:column; gap:10px; }
+
+.sim-hint{
+  font-size:12px;
+  color:var(--text-secondary);
+  margin-bottom:10px;
+}
+
+.sim-checklist{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px 14px;
+}
+@media (max-width:720px){ .sim-checklist{ grid-template-columns:1fr; } }
+.sim-check{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--bg-card);
+}
+.sim-check input{ margin-top:3px; }
+
+.sim-preview{
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  border-radius:14px;
+  padding:12px 14px;
+  min-height:120px;
+}
+
+.sim-modal-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 16px;
+  border-top:1px solid var(--border);
+  background:linear-gradient(0deg, rgba(255,255,255,.04), transparent);
+}
+.sim-footer-right{ display:flex; gap:10px; align-items:center; }
+
+.sim-nav{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.sim-nav.primary{
+  border-color: rgba(255,255,255,.18);
+}
+
+.sim-page{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  z-index:9999;
+}
+.sim-page.active{ display:block; }
+
+
+/* === Simulation UI === */
+.sim-open-btn{
+  height:38px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text-primary);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:transform .08s ease, border-color .15s ease;
+}
+.sim-open-btn:hover{ border-color: rgba(255,255,255,.18); }
+.sim-open-btn:active{ transform: translateY(1px); }
+
+.sim-modal{
+  width:min(980px, 96vw);
+  max-height: min(86vh, 860px);
+  overflow:hidden;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--bg-secondary);
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  display:flex;
+  flex-direction:column;
+}
+
+.sim-modal-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+}
+.sim-modal-title{ display:flex; align-items:center; gap:10px; font-weight:700; }
+.sim-modal-icon{ font-size:18px; }
+
+.sim-close-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text-primary);
+  cursor:pointer;
+}
+.sim-close-btn:hover{ border-color: rgba(255,255,255,.18); }
+
+.sim-stepper{
+  display:flex;
+  gap:10px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+}
+.sim-step-indicator{
+  width:30px;height:30px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-secondary);
+  background:var(--bg-card);
+  font-weight:700;
+}
+.sim-step-indicator.active{ border-color: var(--accent-green); color: var(--text-primary); }
+.sim-step-indicator.done{ opacity:.7; }
+
+.sim-modal-body{
+  padding:14px 16px;
+  overflow:auto;
+}
+.sim-grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+@media (max-width:720px){ .sim-grid-2{ grid-template-columns:1fr; } }
+
+.sim-field label{
+  display:block;
+  font-size:12px;
+  color:var(--text-secondary);
+  margin-bottom:6px;
+}
+.sim-field input, .sim-field select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text-primary);
+  outline:none;
+}
+.sim-field input:focus, .sim-field select:focus{
+  border-color: rgba(255,255,255,.22);
+}
+
+/* Waypoints */
+.sim-waypoints-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:14px;
+  margin-bottom:10px;
+}
+.sim-waypoints-title{ font-weight:700; }
+
+.sim-mini-btn{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text-primary);
+  cursor:pointer;
+}
+.sim-mini-btn:hover{ border-color: rgba(255,255,255,.18); }
+
+.sim-waypoints-list{ display:flex; flex-direction:column; gap:10px; }
+
+.sim-waypoint-row{
+  display:grid;
+  grid-template-columns: 34px 1fr 190px 36px;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--bg-card);
+}
+@media (max-width:720px){
+  .sim-waypoint-row{
+    grid-template-columns: 34px 1fr 1fr 36px;
+  }
+}
+.sim-wp-number{
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Share Tech Mono', monospace;
+  font-size:12px;
+  color:var(--accent-cyan);
+  background:rgba(0,212,255,0.08);
+  border:1px solid rgba(0,212,255,0.18);
+}
+.sim-wp-name, .sim-wp-type{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  outline:none;
+}
+.sim-wp-name:focus, .sim-wp-type:focus{
+  border-color: rgba(255,255,255,.22);
+}
+
+.sim-wp-remove{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-primary);
+  color:var(--accent-red);
+  cursor:pointer;
+}
+.sim-wp-remove:hover{
+  border-color: rgba(255,61,61,.35);
+  background: rgba(255,61,61,.08);
+}
+
+/* Hints / checklist / preview */
+.sim-hint{
+  font-size:12px;
+  color:var(--text-secondary);
+  margin-bottom:10px;
+}
+
+.sim-checklist{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px 14px;
+}
+@media (max-width:720px){ .sim-checklist{ grid-template-columns:1fr; } }
+
+.sim-check{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--bg-card);
+}
+.sim-check input{ margin-top:3px; }
+
+.sim-preview{
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  border-radius:14px;
+  padding:12px 14px;
+  min-height:120px;
+}
+
+/* Footer nav buttons */
+.sim-modal-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 16px;
+  border-top:1px solid var(--border);
+  background:linear-gradient(0deg, rgba(255,255,255,.04), transparent);
+}
+.sim-footer-right{ display:flex; gap:10px; align-items:center; }
+
+.sim-nav{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-card);
+  color:var(--text-primary);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.sim-nav.primary{
+  border-color: rgba(255,255,255,.18);
+}
+.sim-nav:hover{
+  border-color: rgba(255,255,255,.22);
+}
+
+/* === Simulation Page (result) === */
+.sim-page{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  backdrop-filter: blur(8px);
+  display:none;
+  z-index:10050; /* выше body::before (scanlines) */
+}
+.sim-page.active{
+  display:flex;
+  flex-direction:column;
+}
+
+.sim-page-header{
+  position:sticky;
+  top:0;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(10,14,20,.88);
+  backdrop-filter: blur(10px);
+}
+.sim-page-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:700;
+}
+.sim-page-title strong{ color: var(--accent-green); }
+.sim-page-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.sim-progress{
+  font-family:'Share Tech Mono', monospace;
+  color:var(--text-secondary);
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+}
+
+.sim-timeline{
+  flex:1;
+  overflow:auto;
+  width:min(1040px, calc(100% - 32px));
+  margin:16px auto 22px;
+  padding:14px 14px 18px;
+  border-radius:16px;
+  background:rgba(17,24,32,.88);
+  border:1px solid rgba(0,255,136,.12);
+  box-shadow:0 18px 70px rgba(0,0,0,.65);
+}
+
+/* Критично: иначе все шаги видны одновременно и "налезают" */
+.sim-step{ display:none; }
+.sim-step.active{ display:block; }
+
+.sim-step-header{
+  display:grid;
+  grid-template-columns: auto 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:12px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  margin-bottom:12px;
+}
+.sim-step-number{
+  font-family:'Share Tech Mono', monospace;
+  color:var(--accent-cyan);
+  font-size:12px;
+  white-space:nowrap;
+}
+.sim-step-phase{
+  font-weight:700;
+  color:var(--text-primary);
+}
+.sim-step-location{
+  font-family:'Share Tech Mono', monospace;
+  color:var(--text-secondary);
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.sim-step-body{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.sim-step-note{
+  border:1px dashed rgba(255,179,0,.35);
+  background:rgba(255,179,0,.08);
+  color:var(--text-secondary);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:13px;
+}
+
+.sim-step-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.sim-nav-btn{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+  color:var(--text-primary);
+  cursor:pointer;
+}
+.sim-nav-btn:hover{ border-color: rgba(255,255,255,.18); }
+
+.sim-step.emergency .sim-step-header{
+  border-color: rgba(255,61,61,.22);
+}
+.sim-step.carrier .sim-step-header{
+  border-color: rgba(0,212,255,.22);
+}
+.sim-step.awacs .sim-step-header{
+  border-color: rgba(255,179,0,.22);
+}
+
+/* === Better styled selects (waypoint type dropdown) === */
+.sim-wp-type,
+#simOpType,
+.sim-field select{
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  padding-right: 42px; /* место под стрелку */
+  cursor: pointer;
+
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,.65) 50%),
+    linear-gradient(135deg, rgba(255,255,255,.65) 50%, transparent 50%),
+    linear-gradient(to right, rgba(255,255,255,.08), rgba(255,255,255,.08));
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%,
+    calc(100% - 40px) 50%;
+  background-size:
+    6px 6px,
+    6px 6px,
+    1px 18px;
+  background-repeat: no-repeat;
+}
+
+.sim-wp-type:hover,
+#simOpType:hover,
+.sim-field select:hover{
+  border-color: rgba(255,255,255,.18);
+}
+
+.sim-wp-type:focus,
+#simOpType:focus,
+.sim-field select:focus{
+  border-color: rgba(0,255,136,.35);
+  box-shadow: 0 0 0 3px rgba(0,255,136,.10);
+}
+
+.sim-wp-type:disabled,
+#simOpType:disabled,
+.sim-field select:disabled{
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.sim-wp-type option,
+#simOpType option,
+.sim-field select option{
+  background: #0f1622;
+  color: #e8eef6;
+}
+
+.sim-wp-type{
+  position: relative;
+}
+
+.sim-wp-select{
+  width: 100%;
+  height: 36px;
+
+  padding: 0 44px 0 12px;
+  border-radius: 10px;
+
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.sim-wp-select:hover{
+  border-color: rgba(255,255,255,.18);
+}
+
+.sim-wp-select:focus{
+  border-color: rgba(0,255,136,.35);
+  box-shadow: 0 0 0 3px rgba(0,255,136,.10);
+}
+.sim-wp-type::after{
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translateY(-60%) rotate(45deg);
+  border-right: 2px solid rgba(255,255,255,.65);
+  border-bottom: 2px solid rgba(255,255,255,.65);
+  pointer-events: none;
+  opacity: .9;
+}
+.sim-wp-type::before{
+  content: "";
+  position: absolute;
+  right: 38px;
+  top: 50%;
+  width: 1px;
+  height: 18px;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,.10);
+  pointer-events: none;
+}
+.sim-wp-select option{
+  background: #0f1622;
+  color: #e8eef6;
+}
+
+.sim-cs {
+  color: var(--accent-amber);
+  font-family: 'Share Tech Mono', monospace;
+}
