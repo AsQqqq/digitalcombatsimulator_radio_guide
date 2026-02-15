@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio Comms Guide — DCS World</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0e14;
+    --bg-secondary: #111820;
+    --bg-card: #141c27;
+    --bg-card-hover: #1a2535;
+    --accent-green: #00ff88;
+    --accent-amber: #ffb300;
+    --accent-red: #ff3d3d;
+    --accent-cyan: #00d4ff;
+    --accent-dim-green: #00ff8833;
+    --accent-dim-amber: #ffb30022;
+    --accent-dim-red: #ff3d3d22;
+    --accent-dim-cyan: #00d4ff22;
+    --text-primary: #e0e8f0;
+    --text-secondary: #8899aa;
+    --text-dim: #556677;
+    --border: #1e2d3d;
+    --border-glow: #00ff8844;
+    --scanline: rgba(0,255,136,0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      var(--scanline) 2px,
+      var(--scanline) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    backdrop-filter: blur(20px);
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px var(--accent-dim-green);
+    white-space: nowrap;
+  }
+
+  .logo span {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .lang-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .lang-btn {
+    padding: 6px 16px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .lang-btn.active {
+    background: var(--accent-green);
+    color: var(--bg-primary);
+    font-weight: bold;
+  }
+
+  .callsign-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .callsign-display:hover {
+    border-color: var(--accent-amber);
+  }
+
+  .callsign-display .cs-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .callsign-display .cs-value {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent-amber);
+    font-size: 14px;
+  }
+
+  .callsign-display .edit-icon {
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* SETTINGS MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(6px);
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--accent-green);
+    border-radius: 12px;
+    padding: 32px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 0 60px var(--accent-dim-green);
+  }
+
+  .modal h2 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-green);
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  .modal label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  .modal label:first-of-type { margin-top: 0; }
+
+  .modal input, .modal select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .modal input:focus, .modal select:focus {
+    border-color: var(--accent-green);
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .btn-save, .btn-cancel {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .btn-save {
+    background: var(--accent-green);
+    color: var(--bg-primary);
+  }
+
+  .btn-save:hover { filter: brightness(1.2); }
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .btn-cancel:hover { border-color: var(--text-secondary); }
+
+  /* LAYOUT */
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* SIDEBAR NAV */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .nav-section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 8px 20px;
+    margin-top: 12px;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 8px 20px 8px 28px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-link:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border-left-color: var(--accent-green);
+  }
+
+  .nav-link.sub {
+    padding-left: 40px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .nav-link.sub:hover {
+    color: var(--text-secondary);
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    flex: 1;
+    padding: 32px 40px;
+    max-width: 960px;
+  }
+
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-number {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    color: var(--accent-green);
+    background: var(--accent-dim-green);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+  }
+
+  /* COMM CARD */
+  .comm-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .comm-card:hover {
+    border-color: #2a3a4a;
+  }
+
+  .comm-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: linear-gradient(90deg, var(--accent-dim-green), transparent);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .comm-card-header.emergency {
+    background: linear-gradient(90deg, var(--accent-dim-red), transparent);
+  }
+
+  .comm-card-header.carrier {
+    background: linear-gradient(90deg, var(--accent-dim-cyan), transparent);
+  }
+
+  .comm-card-header.awacs {
+    background: linear-gradient(90deg, var(--accent-dim-amber), transparent);
+  }
+
+  .card-icon {
+    font-size: 16px;
+  }
+
+  .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .card-chevron {
+    color: var(--text-dim);
+    transition: transform 0.2s;
+    font-size: 14px;
+  }
+
+  .comm-card.open .card-chevron {
+    transform: rotate(180deg);
+  }
+
+  .comm-card-body {
+    display: none;
+    padding: 20px;
+  }
+
+  .comm-card.open .comm-card-body {
+    display: block;
+  }
+
+  /* PHRASE BLOCK */
+  .phrase-block {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    border-left: 3px solid var(--accent-green);
+  }
+
+  .phrase-block.emergency-phrase {
+    border-left-color: var(--accent-red);
+  }
+
+  .phrase-block.carrier-phrase {
+    border-left-color: var(--accent-cyan);
+  }
+
+  .phrase-block.awacs-phrase {
+    border-left-color: var(--accent-amber);
+  }
+
+  .phrase-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .phrase-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--accent-green);
+    line-height: 1.7;
+    margin-bottom: 4px;
+  }
+
+  .phrase-text.rp {
+    color: var(--accent-amber);
+  }
+
+  .phrase-text .cs {
+    color: var(--accent-cyan);
+    font-weight: bold;
+  }
+
+  .explanation {
+    background: rgba(255,179,0,0.06);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    border: 1px solid rgba(255,179,0,0.12);
+  }
+
+  .explanation-title {
+    font-size: 11px;
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .explanation p, .explanation li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .explanation ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .explanation li::before {
+    content: '▸ ';
+    color: var(--accent-amber);
+  }
+
+  .action-block {
+    background: rgba(0,212,255,0.06);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    border: 1px solid rgba(0,212,255,0.12);
+  }
+
+  .action-title {
+    font-size: 11px;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .action-block p, .action-block li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .action-block ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .action-block li::before {
+    content: '✦ ';
+    color: var(--accent-cyan);
+  }
+
+  .response-block {
+    background: rgba(0,255,136,0.06);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    border: 1px solid rgba(0,255,136,0.12);
+  }
+
+  .response-title {
+    font-size: 11px;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .response-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--accent-green);
+    line-height: 1.7;
+  }
+
+  /* INFO BOX */
+  .info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .info-box strong {
+    color: var(--text-primary);
+  }
+
+  /* PHONETIC TABLE */
+  .phonetic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .phonetic-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  .phonetic-letter {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    color: var(--accent-green);
+  }
+
+  .phonetic-word {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* TERMS TABLE */
+  .term-row {
+    display: flex;
+    gap: 16px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .term-name {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent-amber);
+    min-width: 160px;
+    font-size: 14px;
+  }
+
+  .term-def {
+    color: var(--text-secondary);
+    font-size: 13px;
+    flex: 1;
+  }
+
+  /* MOBILE HAMBURGER */
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .sidebar {
+      position: fixed;
+      left: -300px;
+      top: 0;
+      z-index: 150;
+      height: 100vh;
+      transition: left 0.3s;
+    }
+    .sidebar.open { left: 0; }
+    .menu-toggle { display: block; }
+    .main { padding: 24px 16px; }
+    .header { padding: 10px 16px; }
+    .callsign-display .cs-label { display: none; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* HIDDEN language blocks */
+  [data-lang="en"] { display: none; }
+  body.lang-en [data-lang="en"] { display: block; }
+  body.lang-en [data-lang="ru"] { display: none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="logo">RADIO COMMS<br><span>РУКОВОДСТВО ПО РАДИООБМЕНУ ДЛЯ ИГРОКОВ И РП. AWACS</span></div>
+  </div>
+  <div class="header-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" data-l="ru" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" data-l="en" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="callsign-display" onclick="openSettings()">
+      <div>
+        <div class="cs-label">Позывной</div>
+        <div class="cs-value" id="headerCS">King 7</div>
+      </div>
+      <div style="border-left:1px solid var(--border); padding-left:8px; margin-left:4px;">
+        <div class="cs-label">Тип</div>
+        <div class="cs-value" id="headerType" style="color:var(--text-secondary);font-size:12px;">C-130</div>
+      </div>
+      <div class="edit-icon">✎</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>⚙ Параметры борта</h2>
+    <label>Позывной / Callsign</label>
+    <input id="inputCS" type="text" placeholder="King 7">
+    <label>Тип борта / Aircraft Type</label>
+    <input id="inputType" type="text" placeholder="C-130">
+    <label>Роль / Role</label>
+    <select id="inputRole">
+      <option>транспорт / Transport</option>
+      <option>CSAR</option>
+      <option>Log Lift</option>
+      <option>CAP</option>
+      <option>CAS</option>
+      <option>Strike</option>
+      <option>Bomber</option>
+      <option>Recon</option>
+    </select>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeSettings()">Отмена</button>
+      <button class="btn-save" onclick="saveSettings()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="nav-section-title">Основное</div>
+    <a class="nav-link" href="#intro" onclick="closeSidebar()">Введение</a>
+    <a class="nav-link" href="#rules" onclick="closeSidebar()">Правила общения</a>
+
+    <div class="nav-section-title">Самолёт — Аэродром</div>
+    <a class="nav-link" href="#radio-check" onclick="closeSidebar()">Проверка связи</a>
+    <a class="nav-link" href="#startup" onclick="closeSidebar()">Запуск</a>
+    <a class="nav-link" href="#taxi" onclick="closeSidebar()">Руление</a>
+    <a class="nav-link" href="#takeoff" onclick="closeSidebar()">Взлёт</a>
+    <a class="nav-link" href="#landing" onclick="closeSidebar()">Посадка</a>
+    <a class="nav-link" href="#taxi-after" onclick="closeSidebar()">Руление после посадки</a>
+
+    <div class="nav-section-title">Экстренные ситуации</div>
+    <a class="nav-link" href="#go-around" onclick="closeSidebar()">Уход на 2-й круг</a>
+    <a class="nav-link" href="#emergency-land" onclick="closeSidebar()">Экстренная посадка</a>
+    <a class="nav-link" href="#taxi-cancel" onclick="closeSidebar()">Отмена руления</a>
+    <a class="nav-link" href="#instrument-fail" onclick="closeSidebar()">Отказ приборов</a>
+    <a class="nav-link" href="#fire" onclick="closeSidebar()">Пожар</a>
+    <a class="nav-link" href="#engine-fail" onclick="closeSidebar()">Отказ двигателя</a>
+    <a class="nav-link" href="#decompression" onclick="closeSidebar()">Разгерметизация</a>
+    <a class="nav-link" href="#low-fuel" onclick="closeSidebar()">Низкое топливо</a>
+
+    <div class="nav-section-title">Вертолёты</div>
+    <a class="nav-link" href="#heli" onclick="closeSidebar()">Запуск / Руление / Посадка</a>
+
+    <div class="nav-section-title">Авианосец</div>
+    <a class="nav-link" href="#carrier-info" onclick="closeSidebar()">Общая информация</a>
+    <a class="nav-link" href="#carrier-startup" onclick="closeSidebar()">Запуск на авианосце</a>
+    <a class="nav-link" href="#carrier-landing" onclick="closeSidebar()">Посадка CASE I</a>
+    <a class="nav-link" href="#carrier-case3" onclick="closeSidebar()">Посадка CASE III</a>
+    <a class="nav-link" href="#lso-calls" onclick="closeSidebar()">Команды LSO</a>
+
+    <div class="nav-section-title">AWACS / GCI</div>
+    <a class="nav-link" href="#awacs" onclick="closeSidebar()">Общее руководство</a>
+    <a class="nav-link" href="#braa" onclick="closeSidebar()">Вызов BRAA</a>
+    <a class="nav-link" href="#bogey-dope" onclick="closeSidebar()">Bogey Dope</a>
+    <a class="nav-link" href="#declare" onclick="closeSidebar()">DECLARE</a>
+
+    <div class="nav-section-title">Справка</div>
+    <a class="nav-link" href="#phonetic" onclick="closeSidebar()">Фонетический алфавит</a>
+    <a class="nav-link" href="#terms" onclick="closeSidebar()">Термины и аббревиатуры</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- INTRO -->
+    <div class="section" id="intro">
+      <div class="section-header">
+        <span class="section-number">INTRO</span>
+        <h2 class="section-title" data-lang="ru">Введение</h2>
+        <h2 class="section-title" data-lang="en">Introduction</h2>
+      </div>
+      <div class="info-box" data-lang="ru">
+        <strong>Руководство по радиообмену для DCS World.</strong> Смешанная вариация радиообмена — гражданская и военная авиация (ВКС РФ / ВВС США).
+        Используйте кнопку <strong>RU / EN</strong> для переключения языка фраз.
+        Нажмите на ваш <strong>позывной</strong> в шапке, чтобы изменить параметры борта — все фразы автоматически подставят ваш позывной.
+      </div>
+      <div class="info-box" data-lang="en">
+        <strong>Radio Communications Guide for DCS World.</strong> Combined civil and military aviation radio exchange (Russian AF / USAF).
+        Use the <strong>RU / EN</strong> button to switch phrase language.
+        Click your <strong>callsign</strong> in the header to change aircraft parameters — all phrases will auto-fill your callsign.
+      </div>
+    </div>
+
+    <!-- RULES -->
+    <div class="section" id="rules">
+      <div class="section-header">
+        <span class="section-number">0.1</span>
+        <h2 class="section-title" data-lang="ru">Общие правила общения</h2>
+        <h2 class="section-title" data-lang="en">General Communication Rules</h2>
+      </div>
+      <div class="info-box" data-lang="ru">
+        <strong>Б</strong> — борт (пилот, кто говорит). <strong>Р</strong> — руководитель полётов (РП/диспетчер).<br>
+        Каждая цифра произносится отдельно на английском. Высота, видимость передаются поцифренно.<br>
+        Язык, выбранный при первом выходе на связь, сохраняется на весь полёт в зоне данного диспетчера.<br>
+        Повторяйте: курс, эшелон, ВПП, QFE, коды, разрешения на вход в зону.<br>
+        Сигнал бедствия: <strong>MAYDAY MAYDAY MAYDAY</strong>. Сигнал срочности: <strong>PAN PAN PAN PAN</strong>.
+      </div>
+      <div class="info-box" data-lang="en">
+        <strong>ACFT</strong> — aircraft (pilot speaking). <strong>ATC</strong> — air traffic controller.<br>
+        Every digit is spoken individually in English. Altitude, visibility are given digit by digit.<br>
+        The language chosen at first contact is maintained for the entire flight in that controller's zone.<br>
+        Always read back: heading, flight level, runway, QFE, codes, zone entry clearances.<br>
+        Distress signal: <strong>MAYDAY MAYDAY MAYDAY</strong>. Urgency signal: <strong>PAN PAN PAN PAN</strong>.
+      </div>
+    </div>
+
+    <!-- RADIO CHECK -->
+    <div class="section" id="radio-check">
+      <div class="section-header">
+        <span class="section-number">1.1</span>
+        <h2 class="section-title" data-lang="ru">Проверка связи</h2>
+        <h2 class="section-title" data-lang="en">Radio Check</h2>
+      </div>
+      <div class="comm-card open" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">📻</span>
+          <span class="card-title">Проверка связи</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, проверка связи</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, слышу вас на 5</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Что это значит</div>
+            <ul>
+              <li><strong>«слышу вас на 5»</strong> — качество связи отличное (шкала 1–5)</li>
+              <li>РП понимает, что вы на частоте и можете работать</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">📻</span>
+          <span class="card-title">Radio Check</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, radio check</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, read you 5</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">What it means</div>
+            <ul>
+              <li><strong>"read you 5"</strong> — signal quality is excellent (scale 1–5)</li>
+              <li>ATC acknowledges you are on frequency and can work together</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STARTUP -->
+    <div class="section" id="startup">
+      <div class="section-header">
+        <span class="section-number">1.2</span>
+        <h2 class="section-title" data-lang="ru">Запуск на аэродроме</h2>
+        <h2 class="section-title" data-lang="en">Engine Startup at Airfield</h2>
+      </div>
+
+      <div class="comm-card open" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🔥</span>
+          <span class="card-title">Запрос запуска</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, разрешите запуск</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, запуск разрешаю, ВПП 27, ветер 270, 6 узлов, QFE 00.00</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Что это значит</div>
+            <ul>
+              <li><strong>запуск разрешаю</strong> — можно запускать двигатели</li>
+              <li><strong>ВПП 27</strong> — активная полоса (курс ~270°)</li>
+              <li><strong>ветер 270, 6 узлов</strong> — ветер дует с 270°, скорость 6 узлов</li>
+              <li><strong>QFE 00.00</strong> — давление аэродрома, высотомер на ВПП покажет 0</li>
+            </ul>
+          </div>
+          <div class="action-block">
+            <div class="action-title">Что ты делаешь</div>
+            <ul>
+              <li>Запускаешь двигатели</li>
+              <li>Выставляешь QFE</li>
+              <li>Запоминаешь полосу</li>
+            </ul>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Твой ответ</div>
+            <div class="response-text">Запуск разрешили, <span class="cs"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🔥</span>
+          <span class="card-title">Request Start Up</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, request start up</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, start up approved, runway 27, wind 270 at 7 kts, QFE 00.00, Overcast 030</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">What it means</div>
+            <ul>
+              <li><strong>start up approved</strong> — you may start engines</li>
+              <li><strong>runway 27</strong> — active runway (heading ~270°)</li>
+              <li><strong>wind 270 at 7 kts</strong> — wind from 270°, 7 knots</li>
+              <li><strong>QFE 00.00</strong> — airfield pressure, altimeter reads 0 on runway</li>
+              <li><strong>Overcast 030</strong> — solid cloud cover, ceiling at 3000 ft</li>
+            </ul>
+          </div>
+          <div class="action-block">
+            <div class="action-title">What you do</div>
+            <ul>
+              <li>Start engines</li>
+              <li>Set QFE on altimeter</li>
+              <li>Note active runway</li>
+            </ul>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Your response</div>
+            <div class="response-text">Start up approved, <span class="cs"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAXI -->
+    <div class="section" id="taxi">
+      <div class="section-header">
+        <span class="section-number">1.3</span>
+        <h2 class="section-title" data-lang="ru">Руление</h2>
+        <h2 class="section-title" data-lang="en">Taxi</h2>
+      </div>
+
+      <div class="comm-card open" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🛞</span>
+          <span class="card-title">Руление к полосе</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">Борт → РП (запрос руления)</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, разрешите руление</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, руление разрешаю, на предварительный 27 полосы</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Борт (на предварительном)</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, на предварительном</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Борт (запрос исполнительного)</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, разрешите руление на исполнительный</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, разрешаю руление на исполнительный 27 полосы</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Что это значит</div>
+            <ul>
+              <li><strong>предварительный</strong> — точка ожидания перед ВПП (holding point)</li>
+              <li><strong>исполнительный</strong> — на полосе, готов к взлёту (lineup)</li>
+              <li>РП может сразу дать исполнительный, если полоса свободна</li>
+              <li>Могут сказать <strong>«взлёт по готовности»</strong> — взлетай без запроса</li>
+            </ul>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Твой ответ</div>
+            <div class="response-text">Руление разрешили, на предварительный 27, <span class="cs"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🛞</span>
+          <span class="card-title">Taxi to Runway</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, request taxi</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, taxi to holding point runway 27</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ACFT (at holding point)</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, holding short runway 27</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, line up runway 27 and wait</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">What it means</div>
+            <ul>
+              <li><strong>holding point</strong> — wait position before runway</li>
+              <li><strong>line up and wait</strong> — enter runway, ready for takeoff, wait for clearance</li>
+            </ul>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Your response</div>
+            <div class="response-text">Line up runway 27 and wait, <span class="cs"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAKEOFF -->
+    <div class="section" id="takeoff">
+      <div class="section-header">
+        <span class="section-number">1.4</span>
+        <h2 class="section-title" data-lang="ru">Взлёт</h2>
+        <h2 class="section-title" data-lang="en">Takeoff</h2>
+      </div>
+      <div class="comm-card open" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">✈️</span>
+          <span class="card-title">Запрос взлёта</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, взлёт</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, взлёт разрешаю, ветер у земли 270, 7 узлов, удачного полёта</div>
+          </div>
+          <div class="action-block">
+            <div class="action-title">Что ты делаешь</div>
+            <ul><li>Выполняешь взлёт</li></ul>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Твой ответ (после взлёта)</div>
+            <div class="response-text">Сенаки, <span class="cs"></span>, в воздухе, конец связи</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">✈️</span>
+          <span class="card-title">Request Takeoff</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, request take-off</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, cleared for take-off runway 27, wind 270 degrees at 7 kts</div>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Your response</div>
+            <div class="response-text">Taking off, <span class="cs"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LANDING -->
+    <div class="section" id="landing">
+      <div class="section-header">
+        <span class="section-number">1.5</span>
+        <h2 class="section-title" data-lang="ru">Посадка</h2>
+        <h2 class="section-title" data-lang="en">Landing</h2>
+      </div>
+      <div class="comm-card open" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🛬</span>
+          <span class="card-title">Запрос посадки</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">Борт → РП (за 50 км)</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, возврат</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт (векторение)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, идите курсом 270, снижайтесь до 2000 ft</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Борт</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, курс 270 занял</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт (разрешение)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, посадку разрешаю, ВПП 27, посадочный курс 290, QFE 00.00, ветер 270, 7 узлов</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Что это значит</div>
+            <ul>
+              <li><strong>возврат</strong> — запрашивается за ~50 км от аэродрома</li>
+              <li>РП ведёт вас курсами (векторение) до посадочного</li>
+              <li><strong>посадочный курс 290</strong> — курс выхода на глиссаду</li>
+            </ul>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Твой ответ</div>
+            <div class="response-text">Посадку разрешили, ВПП 27, курс 290, <span class="cs"></span></div>
+          </div>
+          <div class="response-block" style="margin-top:8px;">
+            <div class="response-title">После касания</div>
+            <div class="response-text">Сенаки, <span class="cs"></span>, посадка</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🛬</span>
+          <span class="card-title">Request Landing</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, inbound</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT (vectors)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, continue on heading 212, descend to flight level 2000</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT (clearance)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, cleared to land runway 27, wind 270 degrees at 8 kts</div>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Your response</div>
+            <div class="response-text">Cleared to land runway 27, <span class="cs"></span></div>
+          </div>
+          <div class="response-block" style="margin-top:8px;">
+            <div class="response-title">After touchdown</div>
+            <div class="response-text">Senaki, <span class="cs"></span>, on ground</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAXI AFTER LANDING -->
+    <div class="section" id="taxi-after">
+      <div class="section-header">
+        <span class="section-number">1.6</span>
+        <h2 class="section-title" data-lang="ru">Руление после посадки</h2>
+        <h2 class="section-title" data-lang="en">Taxi After Landing</h2>
+      </div>
+      <div class="comm-card open" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🅿️</span>
+          <span class="card-title">Освобождение полосы</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, выруливайте на Альфу</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Борт</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, полосу освободил</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">РП (стоянка)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, ваша стоянка 05</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🅿️</span>
+          <span class="card-title">Vacate Runway</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, contact ground Alpha, advise vacated</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">ATC → ACFT (stand)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, your stand 05</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMERGENCIES -->
+    <!-- GO AROUND -->
+    <div class="section" id="go-around">
+      <div class="section-header">
+        <span class="section-number">E.1</span>
+        <h2 class="section-title" data-lang="ru">Уход на второй круг</h2>
+        <h2 class="section-title" data-lang="en">Go Around</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">Уход на второй круг</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">РП → Борт</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, посадку запрещаю, уходите на второй круг</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">РП (с курсом)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, посадку запрещаю, уход правым 217, перед вами борт</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Причины</div>
+            <ul>
+              <li>Экстренная посадка другого борта</li>
+              <li>Внеплановое руление на полосу</li>
+              <li>Полоса разбита</li>
+              <li>Встречный борт садится</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">Go Around</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC → ACFT</div>
+            <div class="phrase-text rp"><span class="cs"></span>, go around</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC (with heading)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, go around, right 217</div>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Your response</div>
+            <div class="response-text">Going around, <span class="cs"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMERGENCY LANDING -->
+    <div class="section" id="emergency-land">
+      <div class="section-header">
+        <span class="section-number">E.2</span>
+        <h2 class="section-title" data-lang="ru">Экстренная посадка</h2>
+        <h2 class="section-title" data-lang="en">Emergency / Priority Landing</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🚨</span>
+          <span class="card-title">Экстренная посадка</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, запрашиваю экстренную</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Что это значит</div>
+            <p>После запроса РП начнёт векторение на ближайший посадочный курс. Докладывайте неисправности: отказ двигателей, гидросистемы, навигации, стойки шасси и т.д.</p>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🚨</span>
+          <span class="card-title">Priority Landing (MAYDAY)</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">MAYDAY MAYDAY MAYDAY, <span class="cs"></span>, request priority landing</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">What it means</div>
+            <p>ATC will vector you to the nearest approach course. Report all failures: engine, hydraulics, nav, gear, etc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAXI CANCEL -->
+    <div class="section" id="taxi-cancel">
+      <div class="section-header">
+        <span class="section-number">E.3</span>
+        <h2 class="section-title" data-lang="ru">Отмена руления</h2>
+        <h2 class="section-title" data-lang="en">Taxi Abort</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🛑</span>
+          <span class="card-title">Отмена руления</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">РП (пропуск борта)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, пропустите борт</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">РП (запрет)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Сенаки, руление запрещаю</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🛑</span>
+          <span class="card-title">Taxi Abort</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC (give way)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, give way to the fighter</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC (abort)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, abort taxiing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSTRUMENT FAILURE -->
+    <div class="section" id="instrument-fail">
+      <div class="section-header">
+        <span class="section-number">E.4</span>
+        <h2 class="section-title" data-lang="ru">Отказ приборов</h2>
+        <h2 class="section-title" data-lang="en">Instrument Failure</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">⚠️</span>
+          <span class="card-title">Полный отказ приборов</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, полный отказ приборов, прошу векторение</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Варианты</div>
+            <ul>
+              <li>«прошу векторение на ближайший»</li>
+              <li>«прошу векторение на Сочи»</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">⚠️</span>
+          <span class="card-title">Total Instrument Failure</span>
+          <span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">MAYDAY MAYDAY MAYDAY, <span class="cs"></span>, total instruments failure, request vectors to nearest</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIRE -->
+    <div class="section" id="fire">
+      <div class="section-header">
+        <span class="section-number">E.5</span>
+        <h2 class="section-title" data-lang="ru">Пожар</h2>
+        <h2 class="section-title" data-lang="en">Engine Fire</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🔥</span><span class="card-title">Пожар двигателей</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, пожар двигателей, запрашиваю экстренную посадку</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">🔥</span><span class="card-title">Engine Fire</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text"><span class="cs"></span>, engine on fire, making forced landing Senaki</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENGINE FAILURE -->
+    <div class="section" id="engine-fail">
+      <div class="section-header">
+        <span class="section-number">E.6</span>
+        <h2 class="section-title" data-lang="ru">Отказ двигателя</h2>
+        <h2 class="section-title" data-lang="en">Engine Failure</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">⚙️</span><span class="card-title">Отказ двигателя</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт → РП</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, отказ двигателя, высота 1800 метров, 317 узлов</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Если двигатель заработал</div>
+            <div class="phrase-text"><span class="cs"></span>, отмена, двигатель в работе</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">⚙️</span><span class="card-title">Engine Failure</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">MAYDAY MAYDAY MAYDAY, <span class="cs"></span>, engine failure, 1800 meters, 317 knots</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">If engine restarts</div>
+            <div class="phrase-text"><span class="cs"></span>, CANCEL DISTRESS, engine serviceable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECOMPRESSION -->
+    <div class="section" id="decompression">
+      <div class="section-header">
+        <span class="section-number">E.7</span>
+        <h2 class="section-title" data-lang="ru">Разгерметизация</h2>
+        <h2 class="section-title" data-lang="en">Explosive Decompression</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">💨</span><span class="card-title">Разгерметизация</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт</div>
+            <div class="phrase-text"><span class="cs"></span>, аварийное снижение, полная разгерметизация</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">РП (всем бортам)</div>
+            <div class="phrase-text rp">Внимание, всем бортам, в районе Сенаки выполняется аварийное снижение с эшелона ...</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">💨</span><span class="card-title">Explosive Decompression</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT</div>
+            <div class="phrase-text"><span class="cs"></span>, EMERGENCY DESCENT, explosive decompression</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC (all aircraft)</div>
+            <div class="phrase-text rp">Attention all aircraft in the vicinity of Senaki, emergency descent in progress from flight level ...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOW FUEL -->
+    <div class="section" id="low-fuel">
+      <div class="section-header">
+        <span class="section-number">E.8</span>
+        <h2 class="section-title" data-lang="ru">Низкий остаток топлива</h2>
+        <h2 class="section-title" data-lang="en">Low Fuel</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">⛽</span><span class="card-title">Низкое топливо</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, низкий остаток топлива</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">Борт (объявление)</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, объявляю аварийную ситуацию</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">РП</div>
+            <div class="phrase-text rp"><span class="cs"></span>, доложите остаток топлива</div>
+          </div>
+          <div class="response-block">
+            <div class="response-title">Твой ответ</div>
+            <div class="response-text">Сенаки, <span class="cs"></span>, 5.4</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header emergency" onclick="toggleCard(this)">
+          <span class="card-icon">⛽</span><span class="card-title">Low Fuel</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT → ATC</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, low on fuel</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Senaki, do you wish to declare an emergency?</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ACFT</div>
+            <div class="phrase-text">Senaki, <span class="cs"></span>, declare emergency</div>
+          </div>
+          <div class="phrase-block emergency-phrase">
+            <div class="phrase-label">ATC</div>
+            <div class="phrase-text rp"><span class="cs"></span>, report endurance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HELICOPTERS -->
+    <div class="section" id="heli">
+      <div class="section-header">
+        <span class="section-number">2.0</span>
+        <h2 class="section-title" data-lang="ru">Вертолёты — Запуск / Руление / Посадка</h2>
+        <h2 class="section-title" data-lang="en">Helicopters — Startup / Taxi / Landing</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header" onclick="toggleCard(this)">
+          <span class="card-icon">🚁</span><span class="card-title">Вертолёт: полный цикл</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block">
+            <div class="phrase-label">Запуск</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, разрешите запуск, стоянка 8, метеоинформацию имею</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, Сенаки, запуск на стоянке разрешаю</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Руление</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, готов к рулению, взлёт по-самолётному, с ВПП от РД Charlie</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, ВПП 31, предварительный разрешаю, по РД Charlie</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Контрольное висение</div>
+            <div class="phrase-text rp"><span class="cs"></span>, занимайте ВПП 31, разрешаю контрольное висение на ВПП, район РД Charlie</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Взлёт</div>
+            <div class="phrase-text"><span class="cs"></span>, к взлёту готов</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, ветер тихо, разрешаю взлёт ВПП 31</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Посадка</div>
+            <div class="phrase-text">Сенаки, <span class="cs"></span>, на прямой, готов к посадке, курс 330, на сопряжение РД Charlie и ВПП 31</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, ветер 300° 3 м/с, посадку разрешаю</div>
+          </div>
+          <div class="phrase-block">
+            <div class="phrase-label">Руление после</div>
+            <div class="phrase-text"><span class="cs"></span>, разрешите руление по воздуху</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, стоянка 8, руление по воздуху разрешаю</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARRIER INFO -->
+    <div class="section" id="carrier-info">
+      <div class="section-header">
+        <span class="section-number">3.0</span>
+        <h2 class="section-title" data-lang="ru">Авианосец — Общая информация</h2>
+        <h2 class="section-title" data-lang="en">Carrier — General Info</h2>
+      </div>
+      <div class="info-box">
+        <strong data-lang="ru">Частоты CASE I / CASE III:</strong>
+        <strong data-lang="en">Frequencies CASE I / CASE III:</strong><br>
+        <span style="font-family:'Share Tech Mono';color:var(--accent-cyan);">
+          256.000 (Btn 4) — Red Crown<br>
+          265.000 (Btn 3) — Strike<br>
+          264.000 (Btn 2) — Marshall<br>
+          137.500 (Btn 1) — LSO<br>
+          137.000 — Tower (палуба / deck)
+        </span>
+      </div>
+      <div class="info-box" data-lang="ru">
+        <strong>CASE I</strong> — ПМУ: видимость ≥ 5 миль, облачность ≥ 3000 ft.<br>
+        <strong>CASE III</strong> — ночь / видимость &lt; 5 миль / облачность &lt; 1000 ft.
+      </div>
+      <div class="info-box" data-lang="en">
+        <strong>CASE I</strong> — VMC: visibility ≥ 5 miles, ceiling ≥ 3000 ft.<br>
+        <strong>CASE III</strong> — night / visibility &lt; 5 miles / ceiling &lt; 1000 ft.
+      </div>
+    </div>
+
+    <!-- CARRIER STARTUP -->
+    <div class="section" id="carrier-startup">
+      <div class="section-header">
+        <span class="section-number">3.1</span>
+        <h2 class="section-title" data-lang="ru">Запуск на авианосце</h2>
+        <h2 class="section-title" data-lang="en">Carrier Startup & Launch</h2>
+      </div>
+      <div class="comm-card">
+        <div class="comm-card-header carrier" onclick="toggleCard(this)">
+          <span class="card-icon">🚢</span><span class="card-title">Startup → Catapult → Launch</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">a) Ready report</div>
+            <div class="phrase-text">Tower, <span class="cs"></span>, ready</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">b) Weapons ready</div>
+            <div class="phrase-text">Tower, <span class="cs"></span>, weapon ready</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">c) Request start up</div>
+            <div class="phrase-text">Tower, <span class="cs"></span>, request start up</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, Tower, start up approved, catapult 1, wind 270 at 7 kts, QFE 30.00, Overcast 030, departure CASE I</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">d) Catapult & takeoff</div>
+            <div class="phrase-text">Tower, <span class="cs"></span>, catapult 1, request take-off</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, Tower, start-up</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">e) Airborne</div>
+            <div class="phrase-text"><span class="cs"></span>, airborne</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARRIER LANDING CASE I -->
+    <div class="section" id="carrier-landing">
+      <div class="section-header">
+        <span class="section-number">3.2</span>
+        <h2 class="section-title" data-lang="ru">Посадка на авианосец — CASE I</h2>
+        <h2 class="section-title" data-lang="en">Carrier Landing — CASE I</h2>
+      </div>
+      <div class="comm-card">
+        <div class="comm-card-header carrier" onclick="toggleCard(this)">
+          <span class="card-icon">🛬</span><span class="card-title">CASE I Recovery</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">Strike (50+ nm)</div>
+            <div class="phrase-text">Strike, <span class="cs"></span>, flight of 1, Mother's 250 for 55, Angels 12. State 5.4, no alibis</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, Sweet/Sweet, Mother is VFR, Case 1. Contact Marshall on Button 2</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">Marshall (10+ nm)</div>
+            <div class="phrase-text">Marshall, <span class="cs"></span>, 250 for 52, Angels 9, State 5.3</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, Case 1, BRC is 010, Altimeter 29.92, hold marshall stack angels 2. Report see me at 10</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">At 10 nm</div>
+            <div class="phrase-text"><span class="cs"></span>, see you at 10</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, switch Tower on Button 1</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">LSO (¾ mile)</div>
+            <div class="phrase-text"><span class="cs"></span>, commencing</div>
+            <div class="phrase-text rp" style="margin-top:6px;">3/4 mile, call the ball</div>
+            <div class="phrase-text" style="margin-top:6px;"><span class="cs"></span>, hornet, ball, state 4.8</div>
+            <div class="phrase-text rp" style="margin-top:6px;">Roger ball</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title">Расшифровка / Glossary</div>
+            <ul>
+              <li><strong>Mother's 250 for 75</strong> — обратный курс 250° от авианосца, удаление 75 миль</li>
+              <li><strong>Angels 9</strong> — высота 9000 футов</li>
+              <li><strong>State 5.4</strong> — остаток топлива 5.4</li>
+              <li><strong>Sweet/Sweet</strong> — подтверждение понимания</li>
+              <li><strong>Ball</strong> — вижу шар IFLOLS</li>
+              <li><strong>Clara</strong> — НЕ вижу шар, нужны корректировки LSO</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARRIER CASE III -->
+    <div class="section" id="carrier-case3">
+      <div class="section-header">
+        <span class="section-number">3.3</span>
+        <h2 class="section-title" data-lang="ru">Посадка на авианосец — CASE III</h2>
+        <h2 class="section-title" data-lang="en">Carrier Landing — CASE III</h2>
+      </div>
+      <div class="comm-card">
+        <div class="comm-card-header carrier" onclick="toggleCard(this)">
+          <span class="card-icon">🌙</span><span class="card-title">CASE III Recovery (Night / IMC)</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">Marshall</div>
+            <div class="phrase-text">Marshall, <span class="cs"></span>, 250 for 52, Angels 14, State 5.3</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, Mother's weather 600 overcast, vis 3 miles, altimeter 29.87. Case 3 recovery, marshall on the 082, 22, angels 7</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">Commencing</div>
+            <div class="phrase-text"><span class="cs"></span>, commencing, 29.88, state 4.8</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">Platform (5000 ft)</div>
+            <div class="phrase-text"><span class="cs"></span>, platform</div>
+          </div>
+          <div class="phrase-block carrier-phrase">
+            <div class="phrase-label">LSO (ACLS)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, say needles</div>
+            <div class="phrase-text" style="margin-top:6px;"><span class="cs"></span>, fly up, on</div>
+            <div class="phrase-text rp" style="margin-top:6px;"><span class="cs"></span>, fly your needles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LSO CALLS -->
+    <div class="section" id="lso-calls">
+      <div class="section-header">
+        <span class="section-number">3.4</span>
+        <h2 class="section-title" data-lang="ru">Команды LSO</h2>
+        <h2 class="section-title" data-lang="en">LSO Calls</h2>
+      </div>
+      <div class="comm-card">
+        <div class="comm-card-header carrier" onclick="toggleCard(this)">
+          <span class="card-icon">📢</span><span class="card-title" data-lang="ru">Команды за ¾ и ½ мили</span><span class="card-title" data-lang="en">Calls at ¾ and ½ mile</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="term-row"><span class="term-name">"You're high"</span><span class="term-def">Выше глиссады / Above glideslope (≥4.9°)</span></div>
+          <div class="term-row"><span class="term-name">"You're low, POWER"</span><span class="term-def">Ниже глиссады / Below glideslope (≤2.7°)</span></div>
+          <div class="term-row"><span class="term-name">"Lined up left/right"</span><span class="term-def">Левее/правее посадочного курса (≥1.7°)</span></div>
+          <div class="term-row"><span class="term-name">"You're fast"</span><span class="term-def">Скорость велика — увеличь AoA</span></div>
+          <div class="term-row"><span class="term-name">"You're slow"</span><span class="term-def">Скорость мала — уменьши AoA</span></div>
+          <div class="term-row"><span class="term-name">"Easy with the nose"</span><span class="term-def">Плавней по тангажу (&gt;5°/сек)</span></div>
+          <div class="term-row"><span class="term-name">"Easy with your wings"</span><span class="term-def">Плавней по крену (&gt;20°)</span></div>
+          <div class="term-row"><span class="term-name">"Power, Power, POWER"</span><span class="term-def">Проваливаешься! Обороты!</span></div>
+          <div class="term-row"><span class="term-name">"Wave off ×3"</span><span class="term-def">Уход на следующий круг</span></div>
+          <div class="term-row"><span class="term-name">"Wave off, foul deck"</span><span class="term-def">Уход — палуба занята</span></div>
+          <div class="term-row"><span class="term-name">"Bolter ×3"</span><span class="term-def">Гак не зацепил трос — взлетай!</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AWACS -->
+    <div class="section" id="awacs">
+      <div class="section-header">
+        <span class="section-number">4.0</span>
+        <h2 class="section-title" data-lang="ru">AWACS / GCI — Общее руководство</h2>
+        <h2 class="section-title" data-lang="en">AWACS / GCI — General Guide</h2>
+      </div>
+      <div class="info-box">
+        <strong>AWACS</strong> — Airborne Warning And Control System. <strong>GCI</strong> — Ground Controlled Intercept.<br>
+        <span data-lang="ru">Роль диспетчера ВВС (США) — ABM (диспетчер воздушного боя). Самолёт AWACS НАТО в DCS — Boeing E-3 Sentry.</span>
+        <span data-lang="en">USAF role is ABM (Air Battle Manager). NATO AWACS in DCS — Boeing E-3 Sentry.</span>
+      </div>
+      <div class="info-box" data-lang="ru">
+        <strong>Позывные AWACS:</strong> Overlord, Magic, Showtime, Darkstar, Goliath, Wizard, Griffin, Bigfoot
+      </div>
+      <div class="info-box" data-lang="en">
+        <strong>AWACS Callsigns:</strong> Overlord, Magic, Showtime, Darkstar, Goliath, Wizard, Griffin, Bigfoot
+      </div>
+    </div>
+
+    <!-- BRAA -->
+    <div class="section" id="braa">
+      <div class="section-header">
+        <span class="section-number">4.1</span>
+        <h2 class="section-title" data-lang="ru">Вызов BRAA</h2>
+        <h2 class="section-title" data-lang="en">BRAA Call</h2>
+      </div>
+      <div class="comm-card">
+        <div class="comm-card-header awacs" onclick="toggleCard(this)">
+          <span class="card-icon">📡</span><span class="card-title">BRAA — Bearing, Range, Altitude, Aspect</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block awacs-phrase" data-lang="ru">
+            <div class="phrase-label">Пример (RU)</div>
+            <div class="phrase-text rp">BRAA, 183/10, 2 тысячи, горячий</div>
+          </div>
+          <div class="phrase-block awacs-phrase" data-lang="en">
+            <div class="phrase-label">Example (EN)</div>
+            <div class="phrase-text rp">BRAA, 183/10, 2 thousand, hot</div>
+          </div>
+          <div class="explanation">
+            <div class="explanation-title" data-lang="ru">Расшифровка</div>
+            <div class="explanation-title" data-lang="en">Breakdown</div>
+            <ul>
+              <li><strong>183</strong> — bearing/пеленг 183° от вас</li>
+              <li><strong>10</strong> — range/дальность 10 NM</li>
+              <li><strong>2 thousand</strong> — altitude/высота 2000 ft</li>
+              <li><strong>Hot</strong> — aspect/аспект: идёт на вас</li>
+            </ul>
+          </div>
+          <div class="info-box" style="margin-top:12px;">
+            <strong data-lang="ru">Аспекты:</strong>
+            <strong data-lang="en">Aspects:</strong><br>
+            <strong>Hot</strong> — на вас / heading towards you<br>
+            <strong>Drag</strong> — от вас / heading away<br>
+            <strong>Beam</strong> (L/R) — перпендикулярно / perpendicular<br>
+            <strong>Flank</strong> (L/R) — между hot и beam / between hot & beam
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOGEY DOPE -->
+    <div class="section" id="bogey-dope">
+      <div class="section-header">
+        <span class="section-number">4.2</span>
+        <h2 class="section-title" data-lang="ru">Bogey Dope</h2>
+        <h2 class="section-title" data-lang="en">Bogey Dope</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header awacs" onclick="toggleCard(this)">
+          <span class="card-icon">🎯</span><span class="card-title">Запрос Bogey Dope (RU)</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">Борт</div>
+            <div class="phrase-text">Magic, <span class="cs"></span>, Bogey Dope</div>
+          </div>
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">AWACS</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Magic, BRAA, 257/15, 10 тысяч, идёт на восток</div>
+          </div>
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">AWACS (если чисто)</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Magic, чисто</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header awacs" onclick="toggleCard(this)">
+          <span class="card-icon">🎯</span><span class="card-title">Bogey Dope Request (EN)</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">ACFT</div>
+            <div class="phrase-text">Magic, <span class="cs"></span>, Bogey Dope</div>
+          </div>
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">AWACS</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Magic, BRAA, 257/15, 10 thousand, drag east</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECLARE -->
+    <div class="section" id="declare">
+      <div class="section-header">
+        <span class="section-number">4.3</span>
+        <h2 class="section-title" data-lang="ru">DECLARE — свой/чужой</h2>
+        <h2 class="section-title" data-lang="en">DECLARE — Friend/Foe</h2>
+      </div>
+      <div class="comm-card" data-lang="ru">
+        <div class="comm-card-header awacs" onclick="toggleCard(this)">
+          <span class="card-icon">❓</span><span class="card-title">DECLARE (RU)</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">Борт</div>
+            <div class="phrase-text">Magic, <span class="cs"></span>, группа, Bullseye 204/8, 12 тысяч, DECLARE</div>
+          </div>
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">AWACS</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Magic, группа, Bullseye 204/8, 12 тысяч, враг, одиночный контакт, фланкер</div>
+          </div>
+        </div>
+      </div>
+      <div class="comm-card" data-lang="en">
+        <div class="comm-card-header awacs" onclick="toggleCard(this)">
+          <span class="card-icon">❓</span><span class="card-title">DECLARE (EN)</span><span class="card-chevron">▼</span>
+        </div>
+        <div class="comm-card-body">
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">ACFT</div>
+            <div class="phrase-text">Magic, <span class="cs"></span>, Group, Bullseye 204/8, 12 thousand, DECLARE</div>
+          </div>
+          <div class="phrase-block awacs-phrase">
+            <div class="phrase-label">AWACS</div>
+            <div class="phrase-text rp"><span class="cs"></span>, Magic, Group, Bullseye 204/8, 12 thousand, hostile, single contact, flanker</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHONETIC ALPHABET -->
+    <div class="section" id="phonetic">
+      <div class="section-header">
+        <span class="section-number">REF</span>
+        <h2 class="section-title" data-lang="ru">Фонетический алфавит ИКАО</h2>
+        <h2 class="section-title" data-lang="en">ICAO Phonetic Alphabet</h2>
+      </div>
+      <div class="phonetic-grid">
+        <div class="phonetic-item"><div class="phonetic-letter">A</div><div class="phonetic-word">Alpha</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">B</div><div class="phonetic-word">Bravo</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">C</div><div class="phonetic-word">Charlie</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">D</div><div class="phonetic-word">Delta</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">E</div><div class="phonetic-word">Echo</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">F</div><div class="phonetic-word">Foxtrot</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">G</div><div class="phonetic-word">Golf</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">H</div><div class="phonetic-word">Hotel</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">I</div><div class="phonetic-word">India</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">J</div><div class="phonetic-word">Juliet</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">K</div><div class="phonetic-word">Kilo</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">L</div><div class="phonetic-word">Lima</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">M</div><div class="phonetic-word">Mike</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">N</div><div class="phonetic-word">November</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">O</div><div class="phonetic-word">Oscar</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">P</div><div class="phonetic-word">Papa</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">Q</div><div class="phonetic-word">Quebec</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">R</div><div class="phonetic-word">Romeo</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">S</div><div class="phonetic-word">Sierra</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">T</div><div class="phonetic-word">Tango</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">U</div><div class="phonetic-word">Uniform</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">V</div><div class="phonetic-word">Victor</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">W</div><div class="phonetic-word">Whiskey</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">X</div><div class="phonetic-word">X-ray</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">Y</div><div class="phonetic-word">Yankee</div></div>
+        <div class="phonetic-item"><div class="phonetic-letter">Z</div><div class="phonetic-word">Zulu</div></div>
+      </div>
+    </div>
+
+    <!-- TERMS -->
+    <div class="section" id="terms">
+      <div class="section-header">
+        <span class="section-number">REF</span>
+        <h2 class="section-title" data-lang="ru">Термины и аббревиатуры</h2>
+        <h2 class="section-title" data-lang="en">Terms & Abbreviations</h2>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div class="term-row"><span class="term-name">Angel</span><span class="term-def">Высота в тысячах футов (Angel 3 = 3000 ft)</span></div>
+        <div class="term-row"><span class="term-name">Ball / Clara</span><span class="term-def">Ball = вижу IFLOLS. Clara = не вижу, нужна помощь LSO</span></div>
+        <div class="term-row"><span class="term-name">CASE I / III</span><span class="term-def">Схемы прилёта/отлёта с авианосца (ПМУ / минимум)</span></div>
+        <div class="term-row"><span class="term-name">Charlie</span><span class="term-def">Signal Charlie = разрешение на посадку. Charlie Time NN = посадка в NN мин.</span></div>
+        <div class="term-row"><span class="term-name">Commencing</span><span class="term-def">Начал снижение</span></div>
+        <div class="term-row"><span class="term-name">Event</span><span class="term-def">Временной цикл работы авианосца (~1–1.5 ч)</span></div>
+        <div class="term-row"><span class="term-name">Flight of N</span><span class="term-def">Звено из N самолётов</span></div>
+        <div class="term-row"><span class="term-name">LSO</span><span class="term-def">Landing Safety Officer — офицер безопасности посадки</span></div>
+        <div class="term-row"><span class="term-name">Marshall Stack</span><span class="term-def">Зона ожидания посадки на авианосец</span></div>
+        <div class="term-row"><span class="term-name">Passing 2.5</span><span class="term-def">Доклад при прохождении 2500 ft (CASE III)</span></div>
+        <div class="term-row"><span class="term-name">Platform</span><span class="term-def">Доклад при прохождении 5000 ft</span></div>
+        <div class="term-row"><span class="term-name">Spin</span><span class="term-def">Пропуск очереди в паттерне</span></div>
+        <div class="term-row"><span class="term-name">State</span><span class="term-def">Остаток топлива (State 5.4 = 5400 фунтов)</span></div>
+        <div class="term-row"><span class="term-name">Sweet/Sweet</span><span class="term-def">Кодовая фраза подтверждения</span></div>
+        <div class="term-row"><span class="term-name">Wilco</span><span class="term-def">Will comply — принято, выполняю</span></div>
+        <div class="term-row"><span class="term-name">Bullseye</span><span class="term-def">Фиксированная точка отсчёта на карте для всей коалиции</span></div>
+        <div class="term-row"><span class="term-name">Bogey Dope</span><span class="term-def">Запрос инфо о ближайшей угрозе</span></div>
+        <div class="term-row"><span class="term-name">DECLARE</span><span class="term-def">Запрос идентификации: свой или чужой</span></div>
+        <div class="term-row"><span class="term-name">QFE</span><span class="term-def">Атмосферное давление на уровне аэродрома</span></div>
+        <div class="term-row"><span class="term-name">MAYDAY</span><span class="term-def">Сигнал бедствия (серьёзная опасность)</span></div>
+        <div class="term-row"><span class="term-name">PAN PAN</span><span class="term-def">Сигнал срочности (без немедленной опасности)</span></div>
+        <div class="term-row"><span class="term-name">ПАРЛ / САРЛ</span><span class="term-def">Полуактивная / Активная радиолокация (наведение ракет)</span></div>
+        <div class="term-row"><span class="term-name">ИК</span><span class="term-def">Инфракрасный — тепловое наведение ракет</span></div>
+        <div class="term-row"><span class="term-name">Alibi / No Alibi</span><span class="term-def">Alibi = проблема. No alibi = всё в порядке</span></div>
+        <div class="term-row"><span class="term-name">Lima Charlie</span><span class="term-def">Loud & Clear — слышу вас чётко</span></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:40px 0;color:var(--text-dim);font-size:13px;">
+      Руководство составлено: _d€mpay (Псих/Илья) • Beta-Version 2.0.4 • 26.08.2024<br>
+      Сервер: FLIGHTSIMGEEKS // Dynamic Airland Battle
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Settings
+  let callsign = localStorage.getItem('dcs_callsign') || 'King 7';
+  let acType = localStorage.getItem('dcs_type') || 'C-130';
+  let acRole = localStorage.getItem('dcs_role') || 'транспорт / Transport';
+
+  function updateAllCallsigns() {
+    document.querySelectorAll('.cs').forEach(el => el.textContent = callsign);
+    document.getElementById('headerCS').textContent = callsign;
+    document.getElementById('headerType').textContent = acType;
+  }
+
+  function openSettings() {
+    document.getElementById('inputCS').value = callsign;
+    document.getElementById('inputType').value = acType;
+    const sel = document.getElementById('inputRole');
+    for (let o of sel.options) {
+      if (o.value === acRole) o.selected = true;
+    }
+    document.getElementById('settingsModal').classList.add('active');
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsModal').classList.remove('active');
+  }
+
+  function saveSettings() {
+    callsign = document.getElementById('inputCS').value || 'King 7';
+    acType = document.getElementById('inputType').value || 'C-130';
+    acRole = document.getElementById('inputRole').value;
+    localStorage.setItem('dcs_callsign', callsign);
+    localStorage.setItem('dcs_type', acType);
+    localStorage.setItem('dcs_role', acRole);
+    updateAllCallsigns();
+    closeSettings();
+  }
+
+  // Language toggle
+  function setLang(lang) {
+    document.body.classList.toggle('lang-en', lang === 'en');
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.l === lang);
+    });
+  }
+
+  // Card toggle
+  function toggleCard(header) {
+    header.closest('.comm-card').classList.toggle('open');
+  }
+
+  // Mobile sidebar close
+  function closeSidebar() {
+    document.querySelector('.sidebar').classList.remove('open');
+  }
+
+  // Settings modal close on overlay click
+  document.getElementById('settingsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSettings();
+  });
+
+  // Init
+  updateAllCallsigns();
+</script>
+
+</body>
+</html>
